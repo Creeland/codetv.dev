@@ -6,6 +6,7 @@ import Grid from '../../components/design-system/grid.astro';
 import Card from '../../components/design-system/card.astro';
 import List from '../../components/design-system/list.astro';
 import Block from '../../components/design-system/block.astro';
+import HackathonDetails from '../../components/hackathon-details.astro';
 import { getAllHackathons, getHackathonBySlug } from '@codetv/sanity';
 import type { HackathonBySlugQueryResult } from '@codetv/types';
 import { marked } from 'marked';
@@ -29,21 +30,9 @@ if (!hackathon) {
 	return Astro.redirect('/404');
 }
 
-// Calculate status based on deadline
 const now = new Date();
 const deadline = hackathon.deadline ? new Date(hackathon.deadline) : null;
-const isActive = deadline ? now < deadline : false;
-const statusText = isActive ? 'Active' : 'Closed';
-const statusClass = isActive ? 'active' : 'closed';
-
-// Format deadline for display
-const deadlineFormatted = deadline
-	? deadline.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-		})
-	: 'TBD';
-
+const isActive = deadline ? deadline > now : false;
 
 // Hero image - use hero_image, fall back to share_image, then default
 let heroImagePublicId =
@@ -135,51 +124,17 @@ const primarySponsor = hasSponsors ? sponsors?.[0] : null;
 
 		<Block name="overview" variant="two-column-asymmetrical">
 			<Card>
-				<aside class="hackathon-details">
-					<dl>
-						<dt>Status</dt>
-						<dd>
-							<span class={`status ${statusClass}`}></span>
-							{statusText}
-						</dd>
-
-						<dt>Deadline</dt>
-						<dd>
-							<time datetime={hackathon.deadline || ''}
-								>{deadlineFormatted}</time
-							>
-						</dd>
-
-						{
-							primarySponsor && (
-								<>
-									<dt>Sponsor</dt>
-									<dd>
-										{primarySponsor.logo.public_id ? (
-											<img
-												src={createImageUrl(primarySponsor.logo.public_id, {
-													width: 200,
-												})}
-												alt={primarySponsor.title || 'Sponsor'}
-												class="sponsor-image"
-											/>
-										) : (
-											<span>{primarySponsor.title}</span>
-										)}
-									</dd>
-								</>
-							)
-						}
-					</dl>
-
-					{
-						isActive && hackathon.submissionForm && (
-							<a href={hackathon.submissionForm} class="button">
-								Submit Your App
-							</a>
-						)
-					}
-				</aside>
+				<HackathonDetails
+					hackathon={{
+						slug: hackathon.slug || '',
+						title: hackathon.title,
+						deadline: hackathon.deadline || undefined,
+						submissionForm: hackathon.submissionForm || undefined,
+						primarySponsor: primarySponsor,
+					}}
+					buttonText="Submit Your App"
+					buttonLink={hackathon.submissionForm || undefined}
+				/>
 			</Card>
 
 			<div class="text-block challenge">
@@ -350,60 +305,6 @@ const primarySponsor = hasSponsors ? sponsors?.[0] : null;
 </Layout>
 
 <style>
-	.hackathon-details {
-		display: flex;
-		flex-direction: column;
-		gap: 40px;
-		justify-content: space-between;
-
-		dl {
-			align-items: center;
-			display: grid;
-			font-size: 0.75em;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-			grid-template-rows: repeat(3, minmax(0, 40px));
-			letter-spacing: 0.25em;
-			text-transform: uppercase;
-		}
-
-		dt {
-			color: var(--text-muted);
-		}
-
-		dd {
-			align-items: center;
-			color: var(--text-emphasized);
-			display: flex;
-			gap: 8px;
-			justify-content: end;
-
-			.status {
-				block-size: 12px;
-				border-radius: 50%;
-				display: block;
-				inline-size: 12px;
-
-				&.active {
-					background: #79f664;
-				}
-
-				&.closed {
-					background: #ff6b6b;
-				}
-			}
-		}
-
-		.sponsor-image {
-			max-block-size: 40px;
-			inline-size: auto;
-		}
-
-		.button {
-			inline-size: 100%;
-			text-align: center;
-		}
-	}
-
 	h2 {
 		font-family: var(--font-family-heading);
 		font-size: clamp(1.75rem, 3.75cqi, 4.25rem);

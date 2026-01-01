@@ -18,6 +18,7 @@ import BecomeASupporter from '../../../../components/supporter-button.astro';
 import PeopleInEpisode from '../../../../components/people-in-episode.astro';
 import Supporters from '../../../../components/supporters.astro';
 import Card from '../../../../components/cards/card.astro';
+import HackathonDetails from '../../../../components/hackathon-details.astro';
 
 export const prerender = true;
 
@@ -306,11 +307,20 @@ if (episode.video && !episode.video.youtube_id && episode.video.mux) {
 				}
 			</section>
 
-			<section class="additional-details">
-				{
-					episode.sponsors && episode.sponsors.length > 0 ? (
-						<div class="sponsors">
-							<h3>Presented by</h3>
+		<section class="additional-details">
+			{
+				episode.hackathon && (
+					<div class="hackathon-promo">
+						<h3>Related Hackathon</h3>
+						<HackathonDetails hackathon={episode.hackathon} />
+					</div>
+				)
+			}
+
+			{
+				episode.sponsors && episode.sponsors.length > 0 ? (
+					<div class="sponsors">
+						<h3>Presented by</h3>
 
 							<div class="sponsor-logos">
 								{episode.sponsors.map((sponsor) => {
@@ -638,6 +648,17 @@ if (episode.video && !episode.video.youtube_id && episode.video.mux) {
 		summary {
 			font-weight: 600;
 			margin-block-end: 15px;
+		}
+	}
+
+	.hackathon-promo {
+		margin: 0 0 40px;
+
+		h3 {
+			font-size: 1.125rem;
+			font-weight: 600;
+			line-height: 1.1;
+			margin-block: 0.25rem 0.5rem;
 		}
 	}
 

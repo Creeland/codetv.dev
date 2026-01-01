@@ -1,0 +1,152 @@
+---
+import { createImageUrl } from '@codetv/cloudinary';
+import { format } from 'date-fns';
+
+interface Props {
+	hackathon: {
+		slug?: string;
+		title?: string;
+		deadline?: string;
+		submissionForm?: string;
+		primarySponsor?: {
+			title?: string;
+			logo?: { public_id?: string; width?: number; height?: number };
+		} | null;
+	};
+	buttonText?: string;
+	buttonLink?: string;
+}
+
+const {
+	hackathon,
+	buttonText = 'JOIN THE HACKATHON',
+	buttonLink,
+} = Astro.props;
+
+const now = new Date();
+const deadlineDate = hackathon.deadline ? new Date(hackathon.deadline) : null;
+const isActive = deadlineDate ? deadlineDate > now : false;
+
+const statusClass = isActive ? 'active' : 'closed';
+const statusText = isActive ? 'Active' : 'Ended';
+
+const deadlineFormatted = deadlineDate ? format(deadlineDate, 'MMM d') : '';
+
+const primarySponsor = hackathon.primarySponsor;
+
+// Default to hackathon page, allow override for submission form
+const href = buttonLink ?? `/hackathon/${hackathon.slug}`;
+---
+
+<aside class="hackathon-details">
+	<dl>
+		<dt>Status</dt>
+		<dd>
+			<span class={`status ${statusClass}`}></span>
+			{statusText}
+		</dd>
+
+		<dt>Deadline</dt>
+		<dd>
+			<time datetime={hackathon.deadline || ''}>{deadlineFormatted}</time>
+		</dd>
+
+		{
+			primarySponsor?.logo?.public_id && (
+				<>
+					<dt>Sponsor</dt>
+					<dd>
+						<img
+							src={createImageUrl(primarySponsor.logo.public_id, {
+								width: 200,
+							})}
+							alt={primarySponsor.title || 'Sponsor'}
+							class="sponsor-image"
+						/>
+					</dd>
+				</>
+			)
+		}
+	</dl>
+
+	{
+		isActive && (
+			<a href={href} class="button">
+				{buttonText}
+			</a>
+		)
+	}
+</aside>
+
+<style>
+	.hackathon-details {
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		justify-content: space-between;
+
+		dl {
+			align-items: center;
+			display: grid;
+			font-size: 0.75em;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			grid-template-rows: repeat(3, minmax(0, 40px));
+			letter-spacing: 0.15em;
+			margin: 0;
+			text-transform: uppercase;
+		}
+
+		dt {
+			color: var(--text-muted);
+		}
+
+		dd {
+			align-items: center;
+			color: var(--text-emphasized);
+			display: flex;
+			gap: 8px;
+			justify-content: end;
+			margin: 0;
+
+			.status {
+				block-size: 12px;
+				border-radius: 50%;
+				display: block;
+				inline-size: 12px;
+
+				&.active {
+					background: #79f664;
+				}
+
+				&.closed {
+					background: #ff6b6b;
+				}
+			}
+		}
+
+		.sponsor-image {
+			max-block-size: 40px;
+			inline-size: auto;
+		}
+
+		.button {
+			background: var(--yellow-500);
+			border: 1px solid var(--text-muted);
+			color: var(--black);
+			display: block;
+			font-family: var(--font-family-heading);
+			font-size: clamp(0.875em, 6cqi, 1.25em);
+			font-weight: normal;
+			inline-size: 100%;
+			line-height: 0.9;
+			padding: 8px 12px;
+			text-align: center;
+			text-decoration: none;
+
+			&:hover {
+				background: var(--yellow-400);
+				color: var(--black);
+			}
+		}
+	}
+</style>
